@@ -1,6 +1,6 @@
 import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, FormEvent } from 'react';
 import {
 	ArticleStateType,
 	backgroundColors,
@@ -22,7 +22,7 @@ type ArticleParamsFormProps = {
 };
 
 export const ArticleParamsForm = ({ onApply }: ArticleParamsFormProps) => {
-	const [isOpen, setOpen] = useState(false);
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const articleParamsContainer = useRef<HTMLElement | null>(null);
 
 	// открытие/закрытие формы
@@ -33,17 +33,17 @@ export const ArticleParamsForm = ({ onApply }: ArticleParamsFormProps) => {
 			!articleParamsContainer.current?.contains(eventTarget) &&
 			eventTarget.closest('div')?.role !== 'button'
 		) {
-			setOpen(false);
+			setIsMenuOpen(false);
 		}
 	}, []);
 
 	useEffect(() => {
-		if (isOpen) {
+		if (isMenuOpen) {
 			document.addEventListener('mousedown', clickForm);
 		} else {
 			document.removeEventListener('mousedown', clickForm);
 		}
-	}, [isOpen]);
+	}, [isMenuOpen]);
 
 	// Выбор опций
 	const [newOptions, setNewOptions] = useState(defaultArticleState);
@@ -73,31 +73,31 @@ export const ArticleParamsForm = ({ onApply }: ArticleParamsFormProps) => {
 	function handleClickReset() {
 		setNewOptions(defaultArticleState);
 		onApply(defaultArticleState);
-		setOpen(false);
+		setIsMenuOpen(false);
 	}
 
-	function handleClickApply(e: React.MouseEvent) {
+	function handleSubmitApply(e: FormEvent) {
 		e.preventDefault();
 		onApply(newOptions);
-		setOpen(false);
+		setIsMenuOpen(false);
 	}
 
 	return (
 		<>
 			<ArrowButton
-				isOpen={isOpen}
+				isOpen={isMenuOpen}
 				onClick={() => {
-					setOpen(!isOpen);
+					setIsMenuOpen(!isMenuOpen);
 				}}
 			/>
 			<aside
 				className={
-					isOpen
+					isMenuOpen
 						? `${styles.container + ' ' + styles.container_open}`
 						: `${styles.container}`
 				}
 				ref={articleParamsContainer}>
-				<form className={styles.form}>
+				<form className={styles.form} onSubmit={handleSubmitApply}>
 					<div className={styles.form_points}>
 						<Select
 							selected={newOptions.fontFamilyOption}
@@ -139,12 +139,7 @@ export const ArticleParamsForm = ({ onApply }: ArticleParamsFormProps) => {
 							type='clear'
 							onClick={handleClickReset}
 						/>
-						<Button
-							title='Применить'
-							htmlType='submit'
-							type='apply'
-							onClick={handleClickApply}
-						/>
+						<Button title='Применить' htmlType='submit' type='apply' />
 					</div>
 				</form>
 			</aside>
